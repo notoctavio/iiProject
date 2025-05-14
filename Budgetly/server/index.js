@@ -10,7 +10,7 @@ app.post('/api/login', (req, res) => {
     const { username, password } = req.body;
 
     // Exemplu simplu de validare (într-un caz real, folosește o bază de date)
-    if (username === 'admin' && password === 'password1234') {
+    if (username === 'admin@gmail.com' && password === 'password1234') {
         return res.status(200).json({ message: 'Login successful', token: 'fake-jwt-token' });
     } else {
         return res.status(401).json({ message: 'Invalid credentials' });

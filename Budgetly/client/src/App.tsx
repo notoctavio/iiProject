@@ -77,6 +77,23 @@ function App() {
     handleLogin();
   };
 
+  const handleLogoClick = () => {
+    // Reset all states to initial values
+    setIsLoggedIn(false);
+    setIsLoginMode(true);
+    setShowRegister(false);
+    setActiveTab('dashboard');
+    setShowPricing(false);
+    setShowFeatures(false);
+    setSelectedPlan('');
+    setUserData({
+      fullName: '',
+      email: '',
+      password: '',
+      plan: ''
+    });
+  };
+
   const renderDashboardContent = () => {
     switch (activeTab) {
       case 'dashboard':
@@ -182,7 +199,7 @@ function App() {
         {!isLoggedIn ? (
             <>
               <nav className="navbar">
-                <div className="logo-container">
+                <div className="logo-container" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
                   <span className="logo-text">Budgetly</span>
                   <span className="logo-dot">.</span>
                 </div>
@@ -195,7 +212,6 @@ function App() {
                     e.preventDefault();
                     handlePricingClick();
                   }}>Pricing</a>
-                  <a href="#about">About</a>
                   <button className="nav-login-btn" onClick={() => setShowRegister(true)}>Login</button>
                 </div>
               </nav>
@@ -281,7 +297,7 @@ function App() {
         ) : (
             <>
               <nav className="navbar">
-                <div className="logo-container">
+                <div className="logo-container" onClick={handleLogoClick} style={{ cursor: 'pointer' }}>
                   <span className="logo-text">Budgetly</span>
                   <span className="logo-dot"></span>
                 </div>

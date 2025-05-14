@@ -1,9 +1,35 @@
-import React from 'react';
+import React, { ReactElement } from 'react';
 import './Pricing.css';
 
 interface PricingProps {
   onSelectPlan: (plan: string) => void;
 }
+
+const Icon = ({ name }: { name: string }) => {
+  const icons: { [key: string]: ReactElement } = {
+    security: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    ),
+    updates: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+        <path d="M3 3v5h5" />
+        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+        <path d="M16 16h5v5" />
+      </svg>
+    ),
+    support: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+      </svg>
+    )
+  };
+
+  return icons[name] || null;
+};
 
 const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
   const plans = [
@@ -96,19 +122,21 @@ const Pricing: React.FC<PricingProps> = ({ onSelectPlan }) => {
         <h3>All plans include:</h3>
         <div className="common-features">
           <div className="feature">
-            <span className="feature-icon">🔒</span>
+            <div className="feature-icon">
+              <Icon name="security" />
+            </div>
             <span>Bank-level security</span>
           </div>
           <div className="feature">
-            <span className="feature-icon">📱</span>
-            <span>Mobile apps</span>
-          </div>
-          <div className="feature">
-            <span className="feature-icon">🔄</span>
+            <div className="feature-icon">
+              <Icon name="updates" />
+            </div>
             <span>Regular updates</span>
           </div>
           <div className="feature">
-            <span className="feature-icon">💬</span>
+            <div className="feature-icon">
+              <Icon name="support" />
+            </div>
             <span>Community support</span>
           </div>
         </div>
