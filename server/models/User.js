@@ -17,11 +17,12 @@ const userSchema = new mongoose.Schema({
     },
     plan: {
         type: String,
-        enum: ['Free', 'Premium', 'Business'],
+        enum: ['Free', 'Pro', 'Family'],
         default: 'Free'
     }
 }, {
-    timestamps: true // Adds createdAt and updatedAt automatically
+    timestamps: true, // Adds createdAt and updatedAt automatically
+    collection: 'users' // Specifică explicit numele colecției
 });
 
 // Method to return user without sensitive data
