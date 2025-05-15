@@ -1,11 +1,9 @@
 import {useState} from "react";
-import './Login.css';
 
 const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
-    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -14,7 +12,7 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
             const response = await fetch('http://localhost:3000/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
+                body: JSON.stringify({ username, password }),
             });
 
             if (response.ok) {
@@ -32,40 +30,27 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
     };
 
     return (
-        <form onSubmit={handleLogin} className="login-form">
-            <div className="input-group">
-                <label>Email</label>
+        <form onSubmit={handleLogin}>
+            <div>
+                <label>Username:</label>
                 <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="john@example.com"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
                     required
                 />
             </div>
-            <div className="input-group">
-                <label>Password</label>
-                <div className="password-input-container">
-                    <input
-                        type={showPassword ? "text" : "password"}
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        placeholder="••••••••"
-                        required
-                    />
-                    <button
-                        type="button"
-                        className="toggle-password"
-                        onClick={() => setShowPassword(!showPassword)}
-                    >
-                        {showPassword ? "Hide" : "Show"}
-                    </button>
-                </div>
+            <div>
+                <label>Password:</label>
+                <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                />
             </div>
-            {message && <p className="message">{message}</p>}
-            <button type="submit" className="login-btn">
-                Sign In
-            </button>
+            <button type="submit">Login</button>
+            {message && <p>{message}</p>}
         </form>
     );
 };
