@@ -3,14 +3,12 @@ const router = express.Router();
 const { register, login } = require('../controllers/authController');
 const connectDB = require('../config/db');
 
-let isConnected = false;
-
 // Middleware to ensure database connection
 async function ensureConnection(req, res, next) {
     try {
-        if (!isConnected) {
+        // Doar încearcă să te conectezi dacă nu suntem în modul de test
+        if (process.env.NODE_ENV !== 'test') {
             await connectDB();
-            isConnected = true;
         }
         next();
     } catch (err) {

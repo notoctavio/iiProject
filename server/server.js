@@ -9,7 +9,9 @@ const authRoutes = require('./routes/authRoutes');
 const app = express();
 
 // Connect to MongoDB
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+    connectDB();
+}
 
 // Security middleware
 app.use(helmet());
@@ -58,16 +60,20 @@ app.use((req, res) => {
     });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-    console.log('Available routes:');
-    console.log('GET / - Server status');
-    console.log('GET /test - Basic test');
-    console.log('GET /auth/test - Auth test');
-    console.log('POST /auth/register - Register');
-    console.log('POST /auth/login - Login');
-});
+if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+        console.log('Available routes:');
+        console.log('GET / - Server status');
+        console.log('GET /test - Basic test');
+        console.log('GET /auth/test - Auth test');
+        console.log('POST /auth/register - Register');
+        console.log('POST /auth/login - Login');
+    });
+}
+
+module.exports = app;
 
 
 
