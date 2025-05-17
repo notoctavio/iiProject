@@ -186,6 +186,49 @@
   font-size: 1.5rem;
 }
 
+.pricing-footer .feature-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  border-radius: 12px;
+  padding: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+  margin-right: 1rem;
+}
+
+.pricing-footer .feature-icon svg {
+  width: 24px;
+  height: 24px;
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.pricing-footer .feature:hover .feature-icon {
+  transform: translateY(-5px);
+  background: linear-gradient(135deg, #1d4ed8, #6d28d9);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+}
+
+.pricing-footer .feature {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.pricing-footer .feature span:not(.feature-icon) {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
 @media (max-width: 768px) {
   .pricing-container {
     padding: 2rem 1rem;

@@ -20,4 +20,6 @@ const connectDB = async (uri) => {
     }
 };
 
+// uri ar trebui să fie connection string-ul din MongoDB Atlas, setat în .env ca MONGODB_URI
+
 module.exports = connectDB; 

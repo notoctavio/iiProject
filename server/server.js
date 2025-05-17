@@ -10,20 +10,30 @@ const app = express();
 
 // Connect to MongoDB
 if (process.env.NODE_ENV !== 'test') {
-    connectDB();
+    connectDB(process.env.MONGODB_URI);
 }
 
 // Security middleware
 app.use(helmet());
 
 // CORS configuration
-const corsOptions = {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-};
-app.use(cors(corsOptions));
+app.use(cors({
+    origin: ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:3001'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Add request logging middleware
+app.use((req, res, next) => {
+    console.log('Incoming request:', {
+        method: req.method,
+        path: req.path,
+        body: req.body,
+        headers: req.headers
+    });
+    next();
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -46,6 +56,12 @@ app.get('/test', (req, res) => {
 
 // Mount auth routes
 app.use('/auth', authRoutes);
+
+// Add this middleware before routes
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`, req.body);
+  next();
+});
 
 // Error handling
 app.use((err, req, res, next) => {

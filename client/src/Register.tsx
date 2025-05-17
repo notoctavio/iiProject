@@ -1,15 +1,15 @@
-import {useState} from "react";
+import { useState } from 'react';
 
-const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
+const Register = ({ onRegisterSuccess }: { onRegisterSuccess: () => void }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
 
         try {
-            const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/login`, {
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password }),
@@ -20,9 +20,9 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
             if (response.ok) {
                 setMessage(data.message);
                 localStorage.setItem('token', data.token);
-                onLoginSuccess();
+                onRegisterSuccess();
             } else {
-                setMessage(data.message || 'Login failed');
+                setMessage(data.message || 'Registration failed');
             }
         } catch (error) {
             setMessage('An error occurred. Please try again.');
@@ -30,7 +30,7 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
     };
 
     return (
-        <form onSubmit={handleLogin}>
+        <form onSubmit={handleRegister}>
             <div>
                 <label>Username:</label>
                 <input
@@ -38,6 +38,7 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
+                    minLength={3}
                 />
             </div>
             <div>
@@ -47,12 +48,13 @@ const Login = ({ onLoginSuccess }: { onLoginSuccess: () => void }) => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    minLength={6}
                 />
             </div>
-            <button type="submit">Login</button>
+            <button type="submit">Register</button>
             {message && <p>{message}</p>}
         </form>
     );
 };
 
-export default Login;
+export default Register; 
