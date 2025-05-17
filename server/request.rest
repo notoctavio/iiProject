@@ -1,0 +1,28 @@
+### Register User
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+    "FullName": "Test User",
+    "Email": "test@example.com",
+    "Password": "test123",
+    "Plan": "free"
+}
+
+### Login User
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+    "Email": "test@example.com",
+    "Password": "test123"
+}
+
+### Test Auth Router
+GET http://localhost:3000/auth/test
+
+### Test Main Server
+GET http://localhost:3000/test
+
+### Server Info
+GET http://localhost:3000/ 
