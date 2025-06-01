@@ -19,7 +19,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Free', 'Pro', 'Family'],
         default: 'Free'
-    }
+    },
+    friends: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 }, {
     timestamps: true, // Adds createdAt and updatedAt automatically
     collection: 'users' // Specifică explicit numele colecției
