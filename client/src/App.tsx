@@ -24,18 +24,17 @@ function App() {
   const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
+    // Remove automatic login on token presence
     const token = localStorage.getItem('token');
     if (token) {
-      // Verifică dacă token-ul este valid
+      // Only verify token if user explicitly tries to access protected routes
       fetch(`${process.env.REACT_APP_API_URL}/auth/verify`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
       .then(response => {
-        if (response.ok) {
-          setIsLoggedIn(true);
-        } else {
+        if (!response.ok) {
           localStorage.removeItem('token');
           setIsLoggedIn(false);
         }

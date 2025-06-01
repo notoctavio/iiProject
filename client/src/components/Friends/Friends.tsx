@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Friends.css';
 
-interface Friend {
-  id: string;
-  name: string;
-  avatar: string;
+interface User {
+  _id: string;
+  fullName: string;
   email: string;
+}
+
+interface FriendRequest {
+  _id: string;
+  sender: User;
+  status: 'pending' | 'accepted' | 'rejected';
+}
+
+interface Friend extends User {
   balance: number;
   transactions: Transaction[];
 }
@@ -20,66 +28,140 @@ interface Transaction {
 }
 
 const Friends: React.FC = () => {
-  const [friends, setFriends] = useState<Friend[]>([
-    {
-      id: '1',
-      name: 'Alex Johnson',
-      avatar: 'AJ',
-      email: 'alex@example.com',
-      balance: 45.00,
-      transactions: [
-        {
-          id: 't1',
-          description: 'Dinner at Italian Restaurant',
-          amount: 45.00,
-          date: '2024-06-10',
-          type: 'debt',
-          status: 'pending'
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Sarah Miller',
-      avatar: 'SM',
-      email: 'sarah@example.com',
-      balance: -23.00,
-      transactions: [
-        {
-          id: 't2',
-          description: 'Movie tickets',
-          amount: 23.00,
-          date: '2024-06-09',
-          type: 'credit',
-          status: 'pending'
-        }
-      ]
-    }
-  ]);
-
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [showAddFriend, setShowAddFriend] = useState(false);
+  const [showFriendRequests, setShowFriendRequests] = useState(false);
   const [showSplitPayment, setShowSplitPayment] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
-  const [newFriend, setNewFriend] = useState({ name: '', email: '' });
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
     splitType: '50-50'
   });
 
-  const handleAddFriend = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newFriendData: Friend = {
-      id: Date.now().toString(),
-      name: newFriend.name,
-      avatar: newFriend.name.split(' ').map(n => n[0]).join(''),
-      email: newFriend.email,
-      balance: 0,
-      transactions: []
+  // Load friends and friend requests
+  useEffect(() => {
+    const loadFriends = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/friends/friends', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          // Add balance and transactions to each friend (you can modify this based on your needs)
+          const friendsWithBalance = data.map((friend: User) => ({
+            ...friend,
+            balance: 0,
+            transactions: []
+          }));
+          setFriends(friendsWithBalance);
+        }
+      } catch (error) {
+        console.error('Error loading friends:', error);
+      }
     };
-    setFriends([...friends, newFriendData]);
-    setNewFriend({ name: '', email: '' });
-    setShowAddFriend(false);
+
+    const loadFriendRequests = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/friends/requests', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setFriendRequests(data);
+        }
+      } catch (error) {
+        console.error('Error loading friend requests:', error);
+      }
+    };
+
+    loadFriends();
+    loadFriendRequests();
+  }, []);
+
+  // Load available users for friend requests
+  const loadUsers = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/friends/users', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
+  };
+
+  const handleSendFriendRequest = async (userId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/friends/request/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        alert('Friend request sent!');
+        setShowAddFriend(false);
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to send friend request');
+      }
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      alert('Failed to send friend request');
+    }
+  };
+
+  const handleAcceptRequest = async (requestId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/friends/accept/${requestId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        // Reload friends and requests
+        window.location.reload();
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to accept friend request');
+      }
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+      alert('Failed to accept friend request');
+    }
+  };
+
+  const handleRejectRequest = async (requestId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/friends/reject/${requestId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to reject friend request');
+      }
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+      alert('Failed to reject friend request');
+    }
   };
 
   const handleSplitPayment = (e: React.FormEvent) => {
@@ -99,7 +181,7 @@ const Friends: React.FC = () => {
     };
 
     const updatedFriends = friends.map(friend => {
-      if (friend.id === selectedFriend.id) {
+      if (friend._id === selectedFriend._id) {
         return {
           ...friend,
           balance: friend.balance + splitAmount,
@@ -135,15 +217,33 @@ const Friends: React.FC = () => {
     <div className="friends-container">
       <div className="friends-header">
         <h1>Friends</h1>
-        <button 
-          className="add-friend-btn"
-          onClick={() => setShowAddFriend(true)}
-        >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
-          Add Friend
-        </button>
+        <div className="friends-actions">
+          <button 
+            className="friend-requests-btn"
+            onClick={() => {
+              setShowFriendRequests(true);
+              setShowAddFriend(false);
+            }}
+          >
+            {friendRequests.length > 0 && (
+              <span className="request-badge">{friendRequests.length}</span>
+            )}
+            Friend Requests
+          </button>
+          <button 
+            className="add-friend-btn"
+            onClick={() => {
+              setShowAddFriend(true);
+              setShowFriendRequests(false);
+              loadUsers();
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Add Friend
+          </button>
+        </div>
       </div>
 
       <div className="friends-grid">
@@ -154,10 +254,10 @@ const Friends: React.FC = () => {
           </div>
           
           {friends.map(friend => (
-            <div key={friend.id} className="friend-card">
-              <div className="friend-avatar">{friend.avatar}</div>
+            <div key={friend._id} className="friend-card">
+              <div className="friend-avatar">{friend.fullName.charAt(0).toUpperCase()}</div>
               <div className="friend-details">
-                <h3>{friend.name}</h3>
+                <h3>{friend.fullName}</h3>
                 <p>{friend.email}</p>
               </div>
               <div className="friend-balance">
@@ -201,7 +301,7 @@ const Friends: React.FC = () => {
             friend.transactions.map(transaction => (
               <div key={transaction.id} className="transaction-item">
                 <div className="transaction-info">
-                  <span className="transaction-friend">{friend.name}</span>
+                  <span className="transaction-friend">{friend.fullName}</span>
                   <span className="transaction-desc">{transaction.description}</span>
                   <span className="transaction-date">{formatDate(transaction.date)}</span>
                 </div>
@@ -220,32 +320,78 @@ const Friends: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal">
             <h2>Add New Friend</h2>
-            <form onSubmit={handleAddFriend}>
-              <div className="input-group">
-                <label>Name</label>
-                <input
-                  type="text"
-                  value={newFriend.name}
-                  onChange={(e) => setNewFriend({ ...newFriend, name: e.target.value })}
-                  placeholder="Enter friend's name"
-                  required
-                />
-              </div>
-              <div className="input-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  value={newFriend.email}
-                  onChange={(e) => setNewFriend({ ...newFriend, email: e.target.value })}
-                  placeholder="Enter friend's email"
-                  required
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="button" onClick={() => setShowAddFriend(false)}>Cancel</button>
-                <button type="submit">Add Friend</button>
-              </div>
-            </form>
+            <div className="users-list">
+              {users.map(user => (
+                <div key={user._id} className="user-item">
+                  <div className="user-info">
+                    <div className="user-avatar">{user.fullName.charAt(0).toUpperCase()}</div>
+                    <div>
+                      <h3>{user.fullName}</h3>
+                      <p>{user.email}</p>
+                    </div>
+                  </div>
+                  <button 
+                    className="add-user-btn"
+                    onClick={() => handleSendFriendRequest(user._id)}
+                  >
+                    Add Friend
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button 
+              className="close-modal-btn"
+              onClick={() => setShowAddFriend(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showFriendRequests && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Friend Requests</h2>
+            <div className="requests-list">
+              {friendRequests.length === 0 ? (
+                <p className="no-requests">No pending friend requests</p>
+              ) : (
+                friendRequests.map(request => (
+                  <div key={request._id} className="request-item">
+                    <div className="request-info">
+                      <div className="request-avatar">
+                        {request.sender.fullName.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <h3>{request.sender.fullName}</h3>
+                        <p>{request.sender.email}</p>
+                      </div>
+                    </div>
+                    <div className="request-actions">
+                      <button 
+                        className="accept-btn"
+                        onClick={() => handleAcceptRequest(request._id)}
+                      >
+                        Accept
+                      </button>
+                      <button 
+                        className="reject-btn"
+                        onClick={() => handleRejectRequest(request._id)}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+            <button 
+              className="close-modal-btn"
+              onClick={() => setShowFriendRequests(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
@@ -253,7 +399,7 @@ const Friends: React.FC = () => {
       {showSplitPayment && selectedFriend && (
         <div className="modal-overlay">
           <div className="modal">
-            <h2>Split Payment with {selectedFriend.name}</h2>
+            <h2>Split Payment with {selectedFriend.fullName}</h2>
             <form onSubmit={handleSplitPayment}>
               <div className="input-group">
                 <label>Description</label>

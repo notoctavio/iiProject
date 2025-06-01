@@ -5,6 +5,7 @@ const helmet = require('helmet');
 require('dotenv').config();
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const friendRoutes = require('./routes/friendRoutes');
 
 const app = express();
 
@@ -56,6 +57,7 @@ app.get('/test', (req, res) => {
 
 // Mount auth routes
 app.use('/auth', authRoutes);
+app.use('/friends', friendRoutes);
 
 // Add this middleware before routes
 app.use((req, res, next) => {
