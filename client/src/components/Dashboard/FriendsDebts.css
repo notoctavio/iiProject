@@ -1,0 +1,195 @@
+.pro-card.pro-friends {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.pro-card.pro-friends h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1.25rem;
+}
+
+.pro-card.pro-friends h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 1.5rem 0 1rem;
+}
+
+.pro-friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pro-friend-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.pro-friend-item:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.pro-friend-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 1.125rem;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+}
+
+.pro-friend-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pro-friend-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 1rem;
+}
+
+.pro-friend-amount {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.pro-friend-amount.positive {
+  color: #16a34a;
+}
+
+.pro-friend-amount.negative {
+  color: #dc2626;
+}
+
+.pro-remind-btn, .pro-pay-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.pro-remind-btn {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.pro-remind-btn:hover {
+  background: #bbf7d0;
+  transform: translateY(-1px);
+}
+
+.pro-pay-btn {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pro-pay-btn:hover {
+  background: #fecaca;
+  transform: translateY(-1px);
+}
+
+.no-friends-message {
+  text-align: center;
+  color: #64748b;
+  padding: 2rem;
+  background: #f8fafc;
+  border-radius: 12px;
+  font-size: 0.875rem;
+}
+
+/* Recent Transactions Styles */
+.pro-recent-transactions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pro-transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pro-transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.875rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.pro-transaction-item:hover {
+  background: #f1f5f9;
+  transform: translateX(4px);
+}
+
+.pro-transaction-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.pro-transaction-friend {
+  font-weight: 600;
+  color: #1e293b;
+  min-width: 100px;
+}
+
+.pro-transaction-desc {
+  color: #64748b;
+  flex: 1;
+  font-size: 0.875rem;
+}
+
+.pro-transaction-date {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  min-width: 60px;
+  text-align: right;
+}
+
+.pro-transaction-amount {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  min-width: 100px;
+  text-align: center;
+}
+
+.pro-transaction-amount.positive {
+  color: #16a34a;
+  background: #f0fdf4;
+}
+
+.pro-transaction-amount.negative {
+  color: #dc2626;
+  background: #fef2f2;
+} 

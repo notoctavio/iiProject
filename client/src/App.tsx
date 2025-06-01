@@ -4,6 +4,7 @@ import Pricing from './components/Pricing/Pricing';
 import Features from './components/Features/Features';
 import Login from './Login';
 import Friends from './components/Friends/Friends';
+import FriendsDebts from './components/Dashboard/FriendsDebts';
 import { HomeIcon, CardsIcon, TransactionsIcon, BucketsIcon, SettingsIcon, UserIcon, CardIcon, PlusIcon } from './components/Icons';
 
 function App() {
@@ -773,36 +774,6 @@ function App() {
                       </div>
                     </div>
 
-                    <div className="pro-card pro-friends">
-                      <h2>Friends & Debts</h2>
-                      <div className="pro-friends-list">
-                        <div className="pro-friend-item">
-                          <div className="pro-friend-avatar">A</div>
-                          <div className="pro-friend-info">
-                            <span className="pro-friend-name">Alex</span>
-                            <span className="pro-friend-amount positive">Owes you $45</span>
-                          </div>
-                          <button className="pro-remind-btn">Remind</button>
-                        </div>
-                        <div className="pro-friend-item">
-                          <div className="pro-friend-avatar">S</div>
-                          <div className="pro-friend-info">
-                            <span className="pro-friend-name">Sarah</span>
-                            <span className="pro-friend-amount negative">You owe $23</span>
-                          </div>
-                          <button className="pro-pay-btn">Pay</button>
-                        </div>
-                        <div className="pro-friend-item">
-                          <div className="pro-friend-avatar">M</div>
-                          <div className="pro-friend-info">
-                            <span className="pro-friend-name">Mike</span>
-                            <span className="pro-friend-amount positive">Owes you $15</span>
-                          </div>
-                          <button className="pro-remind-btn">Remind</button>
-                        </div>
-                      </div>
-                    </div>
-
                     <div className="pro-card pro-spending">
                       <h2>Spending Categories</h2>
                       <div className="pro-spending-list">
@@ -835,8 +806,10 @@ function App() {
                         </div>
                       </div>
                     </div>
-              </div>
-            </>
+
+                    <FriendsDebts />
+                  </div>
+                </>
               )}
             </main>
           </div>
