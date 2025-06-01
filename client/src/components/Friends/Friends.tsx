@@ -14,17 +14,27 @@ interface FriendRequest {
 }
 
 interface Friend extends User {
-  balance: number;
-  transactions: Transaction[];
+  // No additional properties needed since we're using friendBalances
 }
 
+type SplitType = '50-50' | 'payer-full' | 'payee-full' | 'custom';
+
 interface Transaction {
-  id: string;
+  _id: string;
   description: string;
   amount: number;
-  date: string;
-  type: 'debt' | 'credit';
+  splitType: SplitType;
+  splitPercentage?: number;
   status: 'pending' | 'completed';
+  payer: User;
+  payee: User;
+  date: string;
+  createdAt: string;
+}
+
+interface FriendBalance {
+  friend: User;
+  balance: number;
 }
 
 const Friends: React.FC = () => {
@@ -38,8 +48,33 @@ const Friends: React.FC = () => {
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
-    splitType: '50-50'
+    splitType: '50-50' as SplitType,
+    splitPercentage: 50
   });
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [friendBalances, setFriendBalances] = useState<FriendBalance[]>([]);
+  const [selectedFriendTransactions, setSelectedFriendTransactions] = useState<Transaction[]>([]);
+  const [showTransactions, setShowTransactions] = useState(false);
+
+  useEffect(() => {
+    const loadTransactions = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/friends/transactions', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setTransactions(data);
+        }
+      } catch (error) {
+        console.error('Error loading transactions:', error);
+      }
+    };
+
+    loadTransactions();
+  }, []);
 
   // Load friends and friend requests
   useEffect(() => {
@@ -52,13 +87,7 @@ const Friends: React.FC = () => {
         });
         if (response.ok) {
           const data = await response.json();
-          // Add balance and transactions to each friend (you can modify this based on your needs)
-          const friendsWithBalance = data.map((friend: User) => ({
-            ...friend,
-            balance: 0,
-            transactions: []
-          }));
-          setFriends(friendsWithBalance);
+          setFriends(data);
         }
       } catch (error) {
         console.error('Error loading friends:', error);
@@ -81,14 +110,31 @@ const Friends: React.FC = () => {
       }
     };
 
+    const loadBalances = async () => {
+      try {
+        const response = await fetch('http://localhost:3000/friends/balances', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setFriendBalances(data);
+        }
+      } catch (error) {
+        console.error('Error loading balances:', error);
+      }
+    };
+
     loadFriends();
     loadFriendRequests();
+    loadBalances();
   }, []);
 
   // Load available users for friend requests
-  const loadUsers = async () => {
+  const loadUsers = async (searchTerm: string = '') => {
     try {
-      const response = await fetch('http://localhost:3000/friends/users', {
+      const response = await fetch(`http://localhost:3000/friends/users?search=${searchTerm}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -125,22 +171,56 @@ const Friends: React.FC = () => {
 
   const handleAcceptRequest = async (requestId: string) => {
     try {
+      console.log('Accepting friend request:', requestId);
+      
       const response = await fetch(`http://localhost:3000/friends/accept/${requestId}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
         }
       });
-      if (response.ok) {
-        // Reload friends and requests
-        window.location.reload();
+      
+      const data = await response.json();
+      console.log('Accept friend request response:', data);
+      
+      if (response.ok && data.success) {
+        // Remove the accepted request from the list
+        setFriendRequests(prev => prev.filter(req => req._id !== requestId));
+        
+        // Reload friends list
+        const friendsResponse = await fetch('http://localhost:3000/friends/friends', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (friendsResponse.ok) {
+          const friendsData = await friendsResponse.json();
+          setFriends(friendsData);
+        }
+
+        // Reload balances
+        const balancesResponse = await fetch('http://localhost:3000/friends/balances', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (balancesResponse.ok) {
+          const balancesData = await balancesResponse.json();
+          setFriendBalances(balancesData);
+        }
+
+        // Close the friend requests modal
+        setShowFriendRequests(false);
+        
+        // Show success message
+        alert('Friend request accepted successfully!');
       } else {
-        const data = await response.json();
-        alert(data.error || 'Failed to accept friend request');
+        throw new Error(data.error || data.details || 'Failed to accept friend request');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error accepting friend request:', error);
-      alert('Failed to accept friend request');
+      alert(error?.message || 'Failed to accept friend request');
     }
   };
 
@@ -164,36 +244,107 @@ const Friends: React.FC = () => {
     }
   };
 
-  const handleSplitPayment = (e: React.FormEvent) => {
+  const handleSplitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedFriend) return;
 
-    const amount = parseFloat(newTransaction.amount);
-    const splitAmount = newTransaction.splitType === '50-50' ? amount / 2 : amount;
+    try {
+      const response = await fetch('http://localhost:3000/friends/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          friendId: selectedFriend._id,
+          description: newTransaction.description,
+          amount: parseFloat(newTransaction.amount),
+          splitType: newTransaction.splitType,
+          splitPercentage: newTransaction.splitType === 'custom' ? newTransaction.splitPercentage : undefined
+        })
+      });
 
-    const newTransactionData: Transaction = {
-      id: Date.now().toString(),
-      description: newTransaction.description,
-      amount: splitAmount,
-      date: new Date().toISOString().split('T')[0],
-      type: 'debt',
-      status: 'pending'
-    };
+      if (response.ok) {
+        const transaction = await response.json();
+        setTransactions(prev => [transaction, ...prev]);
+        
+        // Reload balances
+        const balancesResponse = await fetch('http://localhost:3000/friends/balances', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (balancesResponse.ok) {
+          const balances = await balancesResponse.json();
+          setFriendBalances(balances);
+        }
 
-    const updatedFriends = friends.map(friend => {
-      if (friend._id === selectedFriend._id) {
-        return {
-          ...friend,
-          balance: friend.balance + splitAmount,
-          transactions: [newTransactionData, ...friend.transactions]
-        };
+        // Reset form and close modal
+        setNewTransaction({ description: '', amount: '', splitType: '50-50', splitPercentage: 50 });
+        setShowSplitPayment(false);
+        
+        // Show success message
+        alert('Transaction created successfully!');
+      } else {
+        const data = await response.json();
+        alert(data.error || 'Failed to create transaction');
       }
-      return friend;
-    });
+    } catch (error) {
+      console.error('Error creating transaction:', error);
+      alert('Failed to create transaction');
+    }
+  };
 
-    setFriends(updatedFriends);
-    setNewTransaction({ description: '', amount: '', splitType: '50-50' });
-    setShowSplitPayment(false);
+  const handleMarkAsCompleted = async (transactionId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/friends/transaction/${transactionId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (response.ok) {
+        // Update transactions list
+        setTransactions(prev => 
+          prev.map(t => t._id === transactionId ? { ...t, status: 'completed' } : t)
+        );
+
+        // Reload balances
+        const balancesResponse = await fetch('http://localhost:3000/friends/balances', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (balancesResponse.ok) {
+          const balances = await balancesResponse.json();
+          setFriendBalances(balances);
+        }
+
+        // Show success message
+        alert('Transaction marked as completed!');
+      }
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      alert('Failed to update transaction');
+    }
+  };
+
+  const loadFriendTransactions = async (friendId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/friends/transactions/${friendId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedFriendTransactions(data);
+        setShowTransactions(true);
+      }
+    } catch (error) {
+      console.error('Error loading friend transactions:', error);
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -253,66 +404,114 @@ const Friends: React.FC = () => {
             <p>{friends.length} {friends.length === 1 ? 'friend' : 'friends'}</p>
           </div>
           
-          {friends.map(friend => (
-            <div key={friend._id} className="friend-card">
-              <div className="friend-avatar">{friend.fullName.charAt(0).toUpperCase()}</div>
-              <div className="friend-details">
-                <h3>{friend.fullName}</h3>
-                <p>{friend.email}</p>
-              </div>
-              <div className="friend-balance">
-                <span className={friend.balance >= 0 ? 'positive' : 'negative'}>
-                  {friend.balance >= 0 
-                    ? `Owes you ${formatAmount(friend.balance)}` 
-                    : `You owe ${formatAmount(Math.abs(friend.balance))}`}
-                </span>
-              </div>
-              <div className="friend-actions">
-                <button 
-                  className="split-btn"
-                  onClick={() => {
-                    setSelectedFriend(friend);
-                    setShowSplitPayment(true);
-                  }}
-                >
-                  Split Payment
-                </button>
-                {friend.balance !== 0 && (
-                  <button className={`${friend.balance >= 0 ? 'remind-btn' : 'pay-btn'}`}>
-                    {friend.balance >= 0 ? 'Remind' : 'Pay'}
+          {friends.map(friend => {
+            const balance = friendBalances.find(b => b.friend._id === friend._id)?.balance || 0;
+            return (
+              <div key={friend._id} className="friend-card">
+                <div className="friend-avatar">{friend.fullName.charAt(0).toUpperCase()}</div>
+                <div className="friend-details">
+                  <h3>{friend.fullName}</h3>
+                  <p>{friend.email}</p>
+                </div>
+                <div className="friend-balance">
+                  <span className={balance >= 0 ? 'positive' : 'negative'}>
+                    {balance >= 0 
+                      ? `Owes you ${formatAmount(balance)}` 
+                      : `You owe ${formatAmount(Math.abs(balance))}`}
+                  </span>
+                </div>
+                <div className="friend-actions">
+                  <button 
+                    className="split-btn"
+                    onClick={() => {
+                      setSelectedFriend(friend);
+                      setShowSplitPayment(true);
+                    }}
+                  >
+                    Split Payment
                   </button>
-                )}
+                  <button 
+                    className="transactions-btn"
+                    onClick={() => loadFriendTransactions(friend._id)}
+                  >
+                    View History
+                  </button>
+                  {balance !== 0 && (
+                    <button 
+                      className={`${balance >= 0 ? 'remind-btn' : 'pay-btn'}`}
+                      onClick={() => {
+                        if (balance >= 0) {
+                          alert(`Reminder sent to ${friend.fullName}`);
+                        } else {
+                          alert('Payment feature coming soon!');
+                        }
+                      }}
+                    >
+                      {balance >= 0 ? 'Remind' : 'Pay'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div className="transactions-list">
           <div className="transactions-header">
             <h2>Recent Activity</h2>
             <div className="transaction-filters">
-              <button className="filter-btn active">All</button>
-              <button className="filter-btn">Pending</button>
-              <button className="filter-btn">Completed</button>
+              <button 
+                className={`filter-btn ${!showTransactions ? 'active' : ''}`}
+                onClick={() => {
+                  setShowTransactions(false);
+                }}
+              >
+                All
+              </button>
+              <button 
+                className={`filter-btn ${showTransactions ? 'active' : ''}`}
+                onClick={() => {
+                  setShowTransactions(true);
+                }}
+              >
+                Pending
+              </button>
             </div>
           </div>
 
-          {friends.flatMap(friend => 
-            friend.transactions.map(transaction => (
-              <div key={transaction.id} className="transaction-item">
-                <div className="transaction-info">
-                  <span className="transaction-friend">{friend.fullName}</span>
-                  <span className="transaction-desc">{transaction.description}</span>
-                  <span className="transaction-date">{formatDate(transaction.date)}</span>
-                </div>
-                <span className={`transaction-amount ${transaction.type === 'debt' ? 'positive' : 'negative'}`}>
-                  {transaction.type === 'debt' 
+          {(showTransactions ? transactions.filter(t => t.status === 'pending') : transactions).map(transaction => (
+            <div key={transaction._id} className="transaction-item">
+              <div className="transaction-info">
+                <span className="transaction-friend">
+                  {transaction.payer._id === localStorage.getItem('userId') 
+                    ? transaction.payee.fullName 
+                    : transaction.payer.fullName}
+                </span>
+                <span className="transaction-desc">{transaction.description}</span>
+                <span className="transaction-date">{formatDate(transaction.date)}</span>
+                <span className={`transaction-status ${transaction.status}`}>
+                  {transaction.status}
+                </span>
+              </div>
+              <div className="transaction-actions">
+                <span className={`transaction-amount ${
+                  transaction.payer._id === localStorage.getItem('userId') ? 'positive' : 'negative'
+                }`}>
+                  {transaction.payer._id === localStorage.getItem('userId')
                     ? formatAmount(transaction.amount)
                     : `-${formatAmount(transaction.amount)}`}
                 </span>
+                {transaction.status === 'pending' && (
+                  <button 
+                    className="complete-btn"
+                    onClick={() => handleMarkAsCompleted(transaction._id)}
+                  >
+                    Mark as Paid
+                  </button>
+                )}
               </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       </div>
 
@@ -320,6 +519,14 @@ const Friends: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal">
             <h2>Add New Friend</h2>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                className="search-input"
+                onChange={(e) => loadUsers(e.target.value)}
+              />
+            </div>
             <div className="users-list">
               {users.map(user => (
                 <div key={user._id} className="user-item">
@@ -427,17 +634,94 @@ const Friends: React.FC = () => {
                 <label>Split Type</label>
                 <select
                   value={newTransaction.splitType}
-                  onChange={(e) => setNewTransaction({ ...newTransaction, splitType: e.target.value })}
+                  onChange={(e) => {
+                    const splitType = e.target.value as SplitType;
+                    setNewTransaction({ 
+                      ...newTransaction, 
+                      splitType,
+                      splitPercentage: splitType === 'custom' ? newTransaction.splitPercentage : 50
+                    });
+                  }}
                 >
                   <option value="50-50">Split 50/50</option>
-                  <option value="full">Full Amount</option>
+                  <option value="payer-full">You pay full amount</option>
+                  <option value="payee-full">Friend pays full amount</option>
+                  <option value="custom">Custom split</option>
                 </select>
               </div>
+              
+              {newTransaction.splitType === 'custom' && (
+                <div className="input-group">
+                  <label>Your Share Percentage</label>
+                  <div className="percentage-input">
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={newTransaction.splitPercentage}
+                      onChange={(e) => setNewTransaction({ 
+                        ...newTransaction, 
+                        splitPercentage: parseInt(e.target.value)
+                      })}
+                    />
+                    <span className="percentage-value">{newTransaction.splitPercentage}%</span>
+                  </div>
+                  <div className="split-preview">
+                    <p>You pay: {formatAmount((parseFloat(newTransaction.amount) || 0) * (newTransaction.splitPercentage / 100))}</p>
+                    <p>Friend pays: {formatAmount((parseFloat(newTransaction.amount) || 0) * ((100 - newTransaction.splitPercentage) / 100))}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="modal-actions">
                 <button type="button" onClick={() => setShowSplitPayment(false)}>Cancel</button>
                 <button type="submit">Split Payment</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showTransactions && selectedFriendTransactions.length > 0 && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>Transaction History</h2>
+            <div className="transactions-list">
+              {selectedFriendTransactions.map(transaction => (
+                <div key={transaction._id} className="transaction-item">
+                  <div className="transaction-info">
+                    <span className="transaction-desc">{transaction.description}</span>
+                    <span className="transaction-date">{formatDate(transaction.date)}</span>
+                    <span className={`transaction-status ${transaction.status}`}>
+                      {transaction.status}
+                    </span>
+                  </div>
+                  <div className="transaction-actions">
+                    <span className={`transaction-amount ${
+                      transaction.payer._id === localStorage.getItem('userId') ? 'positive' : 'negative'
+                    }`}>
+                      {transaction.payer._id === localStorage.getItem('userId')
+                        ? formatAmount(transaction.amount)
+                        : `-${formatAmount(transaction.amount)}`}
+                    </span>
+                    {transaction.status === 'pending' && (
+                      <button 
+                        className="complete-btn"
+                        onClick={() => handleMarkAsCompleted(transaction._id)}
+                      >
+                        Mark as Paid
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button 
+              className="close-modal-btn"
+              onClick={() => setShowTransactions(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
       )}
