@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Friends.css';
+import AddFriendTransaction from './AddFriendTransaction';
 
 interface User {
   _id: string;
@@ -55,81 +56,92 @@ const Friends: React.FC = () => {
   const [friendBalances, setFriendBalances] = useState<FriendBalance[]>([]);
   const [selectedFriendTransactions, setSelectedFriendTransactions] = useState<Transaction[]>([]);
   const [showTransactions, setShowTransactions] = useState(false);
+  const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [selectedFriendForTransaction, setSelectedFriendForTransaction] = useState<{ id: string; name: string } | null>(null);
+
+  // Load transactions specific to friends
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/friends/transactions', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        // Assuming the backend returns friend-related transactions
+        setTransactions(data);
+      } else {
+        console.error('Failed to fetch friend transactions:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching friend transactions:', error);
+    }
+  };
+
+  // Load balances with friends
+  const fetchBalances = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/friends/balances', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFriendBalances(data);
+      } else {
+        console.error('Failed to fetch friend balances:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching friend balances:', error);
+    }
+  };
 
   useEffect(() => {
-    const loadTransactions = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/friends/transactions', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setTransactions(data);
-        }
-      } catch (error) {
-        console.error('Error loading transactions:', error);
-      }
+    // Initial load of friends, requests, and balances
+    const loadFriendsData = async () => {
+      await loadFriends();
+      await loadFriendRequests();
+      await fetchBalances(); // Load balances initially
+      await fetchTransactions(); // Load friend transactions initially
     };
 
-    loadTransactions();
+    loadFriendsData();
   }, []);
 
   // Load friends and friend requests
-  useEffect(() => {
-    const loadFriends = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/friends/friends', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setFriends(data);
+  const loadFriends = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/friends/friends', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      } catch (error) {
-        console.error('Error loading friends:', error);
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFriends(data);
       }
-    };
+    } catch (error) {
+      console.error('Error loading friends:', error);
+    }
+  };
 
-    const loadFriendRequests = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/friends/requests', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setFriendRequests(data);
+  const loadFriendRequests = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/friends/requests', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      } catch (error) {
-        console.error('Error loading friend requests:', error);
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setFriendRequests(data);
       }
-    };
-
-    const loadBalances = async () => {
-      try {
-        const response = await fetch('http://localhost:3000/friends/balances', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setFriendBalances(data);
-        }
-      } catch (error) {
-        console.error('Error loading balances:', error);
-      }
-    };
-
-    loadFriends();
-    loadFriendRequests();
-    loadBalances();
-  }, []);
+    } catch (error) {
+      console.error('Error loading friend requests:', error);
+    }
+  };
 
   // Load available users for friend requests
   const loadUsers = async (searchTerm: string = '') => {
@@ -364,6 +376,19 @@ const Friends: React.FC = () => {
     }).format(amount);
   };
 
+  const handleAddTransaction = (friendId: string, friendName: string) => {
+    setSelectedFriendForTransaction({ id: friendId, name: friendName });
+    setShowAddTransaction(true);
+  };
+
+  const handleTransactionAdded = () => {
+    setShowAddTransaction(false);
+    setSelectedFriendForTransaction(null);
+    // Refresh transactions and balances
+    fetchTransactions();
+    fetchBalances();
+  };
+
   return (
     <div className="friends-container">
       <div className="friends-header">
@@ -405,13 +430,18 @@ const Friends: React.FC = () => {
           </div>
           
           {friends.map(friend => {
-            const balance = friendBalances.find(b => b.friend._id === friend._id)?.balance || 0;
+            // Find the corresponding balance for this friend
+            const friendBalanceEntry = friendBalances.find(b => b.friend && b.friend._id === friend._id);
+            const balance = friendBalanceEntry ? friendBalanceEntry.balance : 0; // Default to 0 if not found
+
             return (
               <div key={friend._id} className="friend-card">
-                <div className="friend-avatar">{friend.fullName.charAt(0).toUpperCase()}</div>
-                <div className="friend-details">
-                  <h3>{friend.fullName}</h3>
-                  <p>{friend.email}</p>
+                <div className="friend-info">
+                  <div className="friend-avatar">{friend.fullName.charAt(0).toUpperCase()}</div>
+                  <div className="friend-details">
+                    <h3>{friend.fullName}</h3>
+                    <p>{friend.email}</p>
+                  </div>
                 </div>
                 <div className="friend-balance">
                   <span className={balance >= 0 ? 'positive' : 'negative'}>
@@ -422,13 +452,10 @@ const Friends: React.FC = () => {
                 </div>
                 <div className="friend-actions">
                   <button 
-                    className="split-btn"
-                    onClick={() => {
-                      setSelectedFriend(friend);
-                      setShowSplitPayment(true);
-                    }}
+                    className="add-transaction-btn"
+                    onClick={() => handleAddTransaction(friend._id, friend.fullName)}
                   >
-                    Split Payment
+                    Add Transaction
                   </button>
                   <button 
                     className="transactions-btn"
@@ -724,6 +751,18 @@ const Friends: React.FC = () => {
             </button>
           </div>
         </div>
+      )}
+
+      {showAddTransaction && selectedFriendForTransaction && (
+        <AddFriendTransaction
+          friendId={selectedFriendForTransaction.id}
+          friendName={selectedFriendForTransaction.name}
+          onTransactionAdded={handleTransactionAdded}
+          onCancel={() => {
+            setShowAddTransaction(false);
+            setSelectedFriendForTransaction(null);
+          }}
+        />
       )}
     </div>
   );

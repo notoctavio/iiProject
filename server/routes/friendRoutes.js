@@ -78,6 +78,7 @@ router.post('/accept/:requestId', auth, async (req, res) => {
     });
 
     try {
+        console.log('Step 1: Finding friend request...');
         // First verify the request exists and belongs to the current user
         const request = await FriendRequest.findOne({
             _id: req.params.requestId,
@@ -85,7 +86,7 @@ router.post('/accept/:requestId', auth, async (req, res) => {
             status: 'pending'
         });
 
-        console.log('Found friend request:', request);
+        console.log('Step 2: Found friend request:', request);
 
         if (!request) {
             console.log('Friend request not found or already processed');
@@ -93,25 +94,31 @@ router.post('/accept/:requestId', auth, async (req, res) => {
         }
 
         // Start a session for transaction
+        console.log('Step 3: Starting mongoose session...');
         const session = await mongoose.startSession();
         session.startTransaction();
 
         try {
             // Update request status
+            console.log('Step 4: Updating request status...');
             request.status = 'accepted';
             await request.save({ session });
+            console.log('Step 5: Request status updated.');
 
             // Get both users
+            console.log('Step 6: Finding sender and receiver users...');
             const [currentUser, senderUser] = await Promise.all([
                 User.findById(req.user.id).session(session),
                 User.findById(request.sender).session(session)
             ]);
+            console.log('Step 7: Found users:', { currentUser: currentUser ? currentUser._id : null, senderUser: senderUser ? senderUser._id : null });
 
             if (!currentUser || !senderUser) {
                 throw new Error('One or both users not found');
             }
 
             // Add each user to the other's friends list
+            console.log('Step 8: Adding users to friends lists...');
             await Promise.all([
                 User.findByIdAndUpdate(
                     currentUser._id,
@@ -124,10 +131,12 @@ router.post('/accept/:requestId', auth, async (req, res) => {
                     { session, new: true }
                 )
             ]);
+            console.log('Step 9: Users added to friends lists.');
 
             // Commit the transaction
+            console.log('Step 10: Committing transaction...');
             await session.commitTransaction();
-            console.log('Friend request accepted successfully');
+            console.log('Step 11: Transaction committed. Friend request accepted successfully');
 
             res.json({
                 success: true,
@@ -148,7 +157,8 @@ router.post('/accept/:requestId', auth, async (req, res) => {
             error: error.message,
             stack: error.stack,
             requestId: req.params.requestId,
-            userId: req.user.id
+            userId: req.user.id,
+            errorObject: error
         });
         res.status(500).json({
             error: 'Error accepting friend request',
