@@ -6,6 +6,7 @@ require('dotenv').config();
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const friendRoutes = require('./routes/friendRoutes');
+const personalTransactionRoutes = require('./routes/personalTransactionRoutes');
 
 const app = express();
 
@@ -58,6 +59,7 @@ app.get('/test', (req, res) => {
 // Mount auth routes
 app.use('/auth', authRoutes);
 app.use('/friends', friendRoutes);
+app.use('/personal-transactions', personalTransactionRoutes);
 
 // Add this middleware before routes
 app.use((req, res, next) => {

@@ -5,6 +5,8 @@ import Features from './components/Features/Features';
 import Login from './Login';
 import Friends from './components/Friends/Friends';
 import FriendsDebts from './components/Dashboard/FriendsDebts';
+import PersonalTransactions from './components/PersonalTransactions/PersonalTransactions';
+import OverviewDashboard from './components/OverviewDashboard/OverviewDashboard';
 import { HomeIcon, CardsIcon, TransactionsIcon, BucketsIcon, SettingsIcon, UserIcon, CardIcon, PlusIcon } from './components/Icons';
 
 function App() {
@@ -498,13 +500,6 @@ function App() {
                   </svg>
                   Friends
                 </button>
-                <button className="pro-sidebar-btn">
-                  <svg className="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="3" />
-                    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
-                  </svg>
-                  Settings
-                </button>
               </div>
             </aside>
 
@@ -512,216 +507,9 @@ function App() {
               {activeTab === 'friends' ? (
                 <Friends />
               ) : activeTab === 'expenses' ? (
-                <div className="expenses-page">
-                  <div className="expenses-header">
-                    <h1>Expenses & Income</h1>
-                    <div className="expenses-actions">
-                      <button className="expense-action-btn">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M12 5v14M5 12h14" />
-                        </svg>
-                        Add Transaction
-                      </button>
-                      <div className="expense-filter">
-                        <select className="expense-select">
-                          <option>This Month</option>
-                          <option>Last Month</option>
-                          <option>Last 3 Months</option>
-                          <option>This Year</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="expenses-grid">
-                    <div className="expense-card subscriptions">
-                      <div className="expense-card-header">
-                        <h2>Active Subscriptions</h2>
-                        <button className="add-expense-btn">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 5v14M5 12h14" />
-                          </svg>
-                          Add New
-                        </button>
-                      </div>
-                      <div className="expense-list">
-                        <div className="expense-item subscription">
-                          <div className="expense-icon netflix">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M2 12h6m-2 4h10M8 8h14" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Netflix</span>
-                            <span className="expense-date">Monthly • Next: June 15</span>
-                          </div>
-                          <span className="expense-amount negative">-$14.99</span>
-                        </div>
-                        <div className="expense-item subscription">
-                          <div className="expense-icon spotify">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <circle cx="12" cy="12" r="10" />
-                              <path d="M8 14s2.5-1 4-1 4 1 4 1M8 12s2.5-1 4-1 4 1 4 1M8 10s2.5-1 4-1 4 1 4 1" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Spotify</span>
-                            <span className="expense-date">Monthly • Next: June 20</span>
-                          </div>
-                          <span className="expense-amount negative">-$9.99</span>
-                        </div>
-                        <div className="expense-item subscription">
-                          <div className="expense-icon adobe">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 3L4 9v12h16V9l-8-6z" />
-                              <path d="M12 3v18" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Adobe Creative Cloud</span>
-                            <span className="expense-date">Monthly • Next: June 22</span>
-                          </div>
-                          <span className="expense-amount negative">-$52.99</span>
-                        </div>
-                        <div className="expense-item subscription">
-                          <div className="expense-icon gym">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M6 4h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2z" />
-                              <path d="M9 12h6" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Gym Membership</span>
-                            <span className="expense-date">Monthly • Next: July 1</span>
-                          </div>
-                          <span className="expense-amount negative">-$35.00</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="expense-card income">
-                      <div className="expense-card-header">
-                        <h2>Regular Income</h2>
-                        <button className="add-expense-btn">
-                          <PlusIcon /> Add New
-                  </button>
-                      </div>
-                      <div className="expense-list">
-                        <div className="expense-item salary">
-                          <div className="expense-icon salary">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="2" y="4" width="20" height="16" rx="2" />
-                              <path d="M12 8v8m-4-4h8" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Salary</span>
-                            <span className="expense-date">Monthly • Next: June 25</span>
-                          </div>
-                          <span className="expense-amount positive">+$4,500.00</span>
-                        </div>
-                        <div className="expense-item freelance">
-                          <div className="expense-icon freelance">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M12 4L4 8l8 4 8-4-8-4zM4 12l8 4 8-4M4 16l8 4 8-4" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Freelance</span>
-                            <span className="expense-date">Variable • Avg: $800/mo</span>
-                          </div>
-                          <span className="expense-amount positive">+$800.00</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="expense-card recent">
-                      <div className="expense-card-header">
-                        <h2>Recent Transactions</h2>
-                        <div className="expense-card-tabs">
-                          <button className="expense-tab active">All</button>
-                          <button className="expense-tab">Expenses</button>
-                          <button className="expense-tab">Income</button>
-                        </div>
-                      </div>
-                      <div className="expense-list">
-                        <div className="expense-item groceries">
-                          <div className="expense-icon groceries">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Groceries</span>
-                            <span className="expense-date">Today, 2:30 PM</span>
-                          </div>
-                          <span className="expense-amount negative">-$65.40</span>
-                        </div>
-                        <div className="expense-item transport">
-                          <div className="expense-icon transport">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="2" y="8" width="20" height="12" rx="2" />
-                              <path d="M6 12h12M8 16h8" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Transport</span>
-                            <span className="expense-date">Yesterday</span>
-                          </div>
-                          <span className="expense-amount negative">-$25.00</span>
-                        </div>
-                        <div className="expense-item dining">
-                          <div className="expense-icon dining">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M15 11c.6 0 1-.4 1-1V4c0-.6-.4-1-1-1s-1 .4-1 1v6c0 .6.4 1 1 1zM7 11c.6 0 1-.4 1-1V4c0-.6-.4-1-1-1s-1 .4-1 1v6c0 .6.4 1 1 1zM11 11c.6 0 1-.4 1-1V4c0-.6-.4-1-1-1s-1 .4-1 1v6c0 .6.4 1 1 1zM19 11H5c-1.1 0-2 .9-2 2v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7c0-1.1-.9-2-2-2z" />
-                            </svg>
-                          </div>
-                          <div className="expense-details">
-                            <span className="expense-name">Restaurant</span>
-                            <span className="expense-date">June 10</span>
-                          </div>
-                          <span className="expense-amount negative">-$42.80</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="expense-card summary">
-                      <div className="expense-card-header">
-                        <h2>Monthly Summary</h2>
-                        <div className="summary-total positive">+$2,941.82</div>
-                      </div>
-                      <div className="summary-stats">
-                        <div className="summary-stat">
-                          <span className="stat-label">Income</span>
-                          <span className="stat-value positive">+$5,300.00</span>
-                        </div>
-                        <div className="summary-stat">
-                          <span className="stat-label">Expenses</span>
-                          <span className="stat-value negative">-$2,358.18</span>
-                        </div>
-                        <div className="summary-stat">
-                          <span className="stat-label">Subscriptions</span>
-                          <span className="stat-value negative">-$24.98</span>
-                        </div>
-                      </div>
-                      <div className="summary-chart">
-                        <div className="chart-legend">
-                          <div className="legend-item">
-                            <span className="legend-color income"></span>
-                            <span className="legend-label">Income</span>
-                          </div>
-                          <div className="legend-item">
-                            <span className="legend-color expenses"></span>
-                            <span className="legend-label">Expenses</span>
-                          </div>
-                        </div>
-                        <div className="chart-placeholder">
-                          [Monthly trend chart will be here]
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <PersonalTransactions />
+              ) : activeTab === 'overview' ? (
+                <OverviewDashboard />
               ) : (
                 <>
                   <div className="pro-main-header">
